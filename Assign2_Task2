@@ -25,7 +25,7 @@ from sklearn.metrics import roc_curve, auc
 def supervised_classif(clf, X_train, y_train, X_test, y_test,class_cat):
     Y_score = clf.fit(X_train, y_train)
     categories = clf.classes_
-    print(categories)
+    # print(categories)
     categories = categories.tolist()
     cat_indx = categories.index(str(class_cat))
     y_pred = clf.predict(X_test)
@@ -55,7 +55,7 @@ def supervised_classif(clf, X_train, y_train, X_test, y_test,class_cat):
     plt.figure()
     lw = 2
     plt.plot(fpr[0], tpr[0], color='darkorange',
-             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[0])
+             lw=lw, label='ROC curve (area = %0.4f)' % roc_auc[0])
     plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
     plt.xlim([0.0, 1.0])
     plt.ylim([0.0, 1.05])
@@ -97,7 +97,7 @@ if (np.any(np.isnan(df)) == True):
     df=df.fillna(0)
 # X = data[meta.names()[:-1]]
 X=df.iloc[:,:-1]
-print(X.shape)
+# print(X.shape)
 # X = np.asarray(X.tolist(), dtype=np.str_)
 # df1 = df[['age', 'Class']]
 # print(df1.size)
@@ -119,7 +119,7 @@ print(X.shape)
 # Y = data[meta.names()[-1]]
 # Y = df1['Class']
 Y=df.iloc[:,-1]
-print(Y.shape)
+# print(Y.shape)
 # print(type(Y))
 Y = np.array(Y,dtype=np.str_)
 # Y=np.array(Y)
@@ -155,7 +155,7 @@ for fold in [6]:
     ln = 0
     for train, test in kf.split(X):
         i += 1
-        print(train,test)
+        # print(train,test)
         temp_X=X.values
         s1 = supervised_classif(gnb, temp_X[train], Y[train], temp_X[test], Y[test],dict_class['primary_hypothyroid'])
         s2 = supervised_classif(rfc, temp_X[train], Y[train], temp_X[test], Y[test],dict_class['primary_hypothyroid'])
