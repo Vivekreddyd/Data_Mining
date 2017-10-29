@@ -1,0 +1,271 @@
+
+# coding: utf-8
+
+# In[23]:
+
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+from sklearn.naive_bayes import GaussianNB
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import label_binarize
+
+from scipy.io.arff import loadarff
+
+
+# In[26]:
+
+
+#supervised learning and evaluation
+# method to train and test classifier
+from sklearn.metrics import roc_curve, auc
+def supervised_classif(clf, X_train, y_train, X_test, y_test,class_cat):
+    Y_score = clf.fit(X_train, y_train)
+    categories = clf.classes_
+    print(categories)
+    categories = categories.tolist()
+    cat_indx = categories.index(str(class_cat))
+    y_pred = clf.predict(X_test)
+    # y_pred=np.array(y_pred.tolist())
+    # y_test=np.array(y_test.tolist())
+#     y_pred = label_binarize(y_pred, classes=['compensated_hypothyroid', 'negative', 'primary_hypothyroid', 'secondary_hypothyroid'])
+#     y_test = label_binarize(y_test, classes=['compensated_hypothyroid', 'negative', 'primary_hypothyroid', 'secondary_hypothyroid'])
+    y_pred = label_binarize(y_pred, classes=categories)
+    y_test = label_binarize(y_test, classes=categories)
+#     print(categories)
+#     print(y_pred)
+#     print(y_test)
+#     print(type(y_pred))
+#     print(type(y_test))
+    # ROC Curve
+    
+    fpr = dict()
+    tpr = dict()
+    roc_auc = dict()
+    for i in range(0, 1):
+        y_true = np.array(y_test[:,2], dtype=np.int_)
+        y_pre = np.array(y_pred[:, 2], dtype=np.int_)
+        fpr[i], tpr[i], _ = roc_curve(y_true, y_pre)
+        roc_auc[i] = auc(fpr[i], tpr[i])
+    fpr[0], tpr[0], _ = roc_curve(y_test.ravel(), y_pred.ravel())
+    roc_auc[0] = auc(fpr[0], tpr[0])
+    plt.figure()
+    lw = 2
+    plt.plot(fpr[0], tpr[0], color='darkorange',
+             lw=lw, label='ROC curve (area = %0.2f)' % roc_auc[0])
+    plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('Receiver operating characteristic example')
+    plt.legend(loc="lower right")
+    plt.show()
+
+# # Compute micro-average ROC curve and ROC area
+# fpr["micro"], tpr["micro"], _ = roc_curve(y_test.ravel(), y_score.ravel())
+# roc_auc["micro"] = auc(fpr["micro"], tpr["micro"]))
+
+
+# In[27]:
+
+
+from scipy.io.arff import loadarff
+dict_class={}
+with open("/media/vivek/Personal/Vivek/Data_Mining/Labs/Data_Sets/datasets-UCI/UCI/hypothyroid.arff", "r") as f:
+    data, meta = loadarff(f)
+# print(data)
+df = pd.DataFrame(data, columns=meta.names())
+for label,val in meta._attributes.items():
+    # label=val
+    temp={}
+    i=0
+    if(val[0]=='nominal'):
+        for values in val[1]:
+            if(label=='Class'):
+                dict_class[values]=i
+            temp[values]=i
+            i+=1
+        df[label]=df[label].str.decode("utf-8")
+        df[label] = df[label].map(temp)
+
+df=df.interpolate(method='linear',axis=0).ffill().bfill()
+if (np.any(np.isnan(df)) == True):
+    df=df.fillna(0)
+# X = data[meta.names()[:-1]]
+X=df.iloc[:,:-1]
+print(X.shape)
+# X = np.asarray(X.tolist(), dtype=np.str_)
+# df1 = df[['age', 'Class']]
+# print(df1.size)
+# df1 = df1.dropna()
+
+# print(df1.size)
+# print(np.any(np.isnan(df1['Class'])))
+# print()
+# print(type(meta.names()))
+# X = df1['age']
+# print(X.size)
+# X = np.array(X.tolist(), dtype=np.float_)
+# X = X.reshape(-1, 1)
+
+# X.dropna()
+# type(X)
+# print(X)
+
+# Y = data[meta.names()[-1]]
+# Y = df1['Class']
+Y=df.iloc[:,-1]
+print(Y.shape)
+# print(type(Y))
+Y = np.array(Y,dtype=np.str_)
+# Y=np.array(Y)
+# Y = np.asarray(Y.tolist())
+# Y = Y.reshape(-1, 1)
+# Y = Y.reshape(1)
+# y = label_binarize(Y, classes=['compensated_hypothyroid', 'negative', 'primary_hypothyroid', b'secondary_hypothyroid'])
+n_classes = 4
+# print(y)
+# print(type(y))
+gnb = GaussianNB()
+rfc = RandomForestClassifier()
+train, test = list(), list()
+
+# kf = KFold(n_splits=6)
+# s1, s2, i, ln = 0, 0, 0, 0
+# for train, test in kf.split(X):
+# #     print(train,test)
+#     print(X[train].size)
+#     print(X[test].size)
+#     print(Y[train].size)
+#     print(Y[test].size)
+#     print(n_classes)
+# #     print(np.any(np.isnan(X[train])))
+# #     print(Y[train])
+#     #s1 = supervised_classif(gnb, X[train], Y[train], X[test], Y[test], n_classes)
+#     s2 += supervised_classif(rfc, X[train], Y[train], X[test], Y[test], n_classes)
+
+for fold in [6]:
+    kf = KFold(n_splits=fold)
+    i = 0
+    s1, s2 = 0, 0
+    ln = 0
+    for train, test in kf.split(X):
+        i += 1
+        print(train,test)
+        temp_X=X.values
+        s1 = supervised_classif(gnb, temp_X[train], Y[train], temp_X[test], Y[test],dict_class['primary_hypothyroid'])
+        s2 = supervised_classif(rfc, temp_X[train], Y[train], temp_X[test], Y[test],dict_class['primary_hypothyroid'])
+        ln = len(Y[test])
+
+for tst_sz in [0.58]:
+    # print('*' * 20, "tst_sz=" + str(tst_sz), '*' * 20)
+    #     kf = KFold(n_splits=fold)
+    i = 0
+    temp_X = X.values
+    X_train, X_test, Y_train, Y_test = train_test_split(temp_X, Y, test_size=tst_sz)
+
+    s1 = supervised_classif(gnb, X_train, Y_train, X_test, Y_test, dict_class['secondary_hypothyroid'])
+    s2 = supervised_classif(rfc, X_train, Y_train, X_test, Y_test, dict_class['secondary_hypothyroid'])
+# #     stats.loc[stat_index] = [fold, 'NB', s1, (s1 / (fold * ln)) * 100]
+# #     stat_index += 1
+# #     stats.loc[stat_index] = [fold, 'RFC', s2, (s2 / (fold * ln)) * 100]
+# #     stat_index += 1
+# # stats
+#
+# #     #     i += 1
+# #     s1 = supervised_classif(gnb, X[train], Y[train], X[test], Y[test], n_classes)
+# #     s2 = supervised_classif(rfc, X[train], Y[train], X[test], Y[test], n_classes)
+#
+#
+# # In[187]:
+#
+#
+# # with open("/media/vivek/Personal/Vivek/Data_Mining/Labs/Data_Sets/datasets-UCI/UCI/hypothyroid.arff", "r") as f:
+# #     data, meta = loadarff(f)
+# # print(data)
+# df = pd.DataFrame(data, columns=meta.names())
+# df1 = df[['age', 'Class']]
+# # print(df1.size)
+# df1 = df1.dropna()
+# # print(df1.size)
+# # print(np.any(np.isnan(df1['Class'])))
+# # print()
+# # print(type(meta.names()))
+# X = df1['age']
+# print(X.size)
+# X = np.array(X.tolist(), dtype=np.float_)
+# X = X.reshape(-1, 1)
+#
+# # X.dropna()
+# # type(X)
+# # print(X)
+#
+# # Y = data[meta.names()[-1]]
+# Y = df1['Class']
+# print(type(Y))
+# Y = np.array(Y,dtype=np.str_)
+# # Y=np.array(Y)
+# # Y = np.asarray(Y.tolist())
+# # Y = Y.reshape(-1, 1)
+# # Y = Y.reshape(1)
+# # y = label_binarize(Y, classes=['compensated_hypothyroid', 'negative', 'primary_hypothyroid', b'secondary_hypothyroid'])
+# n_classes = 4
+# # print(y)
+# # print(type(y))
+# gnb = GaussianNB()
+# rfc = RandomForestClassifier()
+# train, test = list(), list()
+#
+# # kf = KFold(n_splits=6)
+# # s1, s2, i, ln = 0, 0, 0, 0
+# # for train, test in kf.split(X):
+# # #     print(train,test)
+# #     print(X[train].size)
+# #     print(X[test].size)
+# #     print(Y[train].size)
+# #     print(Y[test].size)
+# #     print(n_classes)
+# # #     print(np.any(np.isnan(X[train])))
+# # #     print(Y[train])
+# #     #s1 = supervised_classif(gnb, X[train], Y[train], X[test], Y[test], n_classes)
+# #     s2 += supervised_classif(rfc, X[train], Y[train], X[test], Y[test], n_classes)
+#
+# for tst_sz in [0.58]:
+#     print('*'*20,"tst_sz="+str(tst_sz), '*'*20)
+# #     kf = KFold(n_splits=fold)
+#     i = 0
+#     X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=tst_sz)
+#
+#     s1 = supervised_classif(gnb, X_train, Y_train, X_test, Y_test,'secondary_hypothyroid')
+#     s2 = supervised_classif(rfc, X_train, Y_train, X_test, Y_test,'secondary_hypothyroid')
+#
+# # for fold in [6]:
+# #     kf = KFold(n_splits=fold)
+# #     i = 0
+# #     s1, s2 = 0, 0
+# #     ln = 0
+# #     for train, test in kf.split(X):
+# #         i += 1
+# #         s1 = supervised_classif(gnb, X[train], Y[train], X[test], Y[test])
+# #         s2 = supervised_classif(rfc, X[train], Y[train], X[test], Y[test])
+# #         ln = len(Y[test])
+# #     stats.loc[stat_index] = [fold, 'NB', s1, (s1 / (fold * ln)) * 100]
+# #     stat_index += 1
+# #     stats.loc[stat_index] = [fold, 'RFC', s2, (s2 / (fold * ln)) * 100]
+# #     stat_index += 1
+# # stats
+#
+# #     #     i += 1
+# #     s1 = supervised_classif(gnb, X[train], Y[train], X[test], Y[test], n_classes)
+# #     s2 = supervised_classif(rfc, X[train], Y[train], X[test], Y[test], n_classes)
+#
+#
+# # In[ ]:
+#
+#
+#
+
