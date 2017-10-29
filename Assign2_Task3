@@ -1,0 +1,174 @@
+
+# coding: utf-8
+
+# In[8]:
+
+
+import numpy as np
+import pandas as pd
+from sklearn import metrics
+from sklearn import tree
+from sklearn.model_selection import KFold
+from sklearn.model_selection import train_test_split
+# from sklearn.naive_bayes import GaussianNB
+# from sklearn.ensemble import RandomForestClassifier
+import operator
+from scipy.io.arff import loadarff
+
+
+# In[9]:
+def get_node_depths_(current_node, current_depth, l, r, depths):
+    depths += [current_depth]
+    if l[current_node] != -1 and r[current_node] != -1:
+        get_node_depths_(l[current_node], current_depth + 1, l, r, depths)
+        get_node_depths_(r[current_node], current_depth + 1, l, r, depths)
+    return depths
+
+
+#supervised learning and evaluation
+# method to train and test classifier
+from sklearn import metrics
+cm = None
+def supervised_classif(clf, X_train, y_train, X_test, y_test,filename):
+    correct_pred=0
+    clf.fit(X_train, y_train)
+    categories = clf.classes_
+    y_pred = clf.predict(X_test)
+    cm = pd.crosstab(y_test, y_pred, rownames=['True'], colnames=['Predicted'], margins=True)
+    acc=metrics.accuracy_score(y_test,y_pred)
+    print('Accuracy and error for the {} dataset {},{}'.format(filename,acc,1-acc))
+    cm = metrics.confusion_matrix(y_test, y_pred)
+    s = 0
+    depths = []
+    tree=clf.tree_
+    get_node_depths_(0, 0, tree.children_left, tree.children_right, depths)
+    for i in range(cm.shape[0]):
+         correct_pred+= cm[i][i]
+    return correct_pred, max(depths)
+
+
+# In[15]:
+
+# for file_name in ['colic.arff']
+
+# with open("/media/vivek/Personal/Vivek/Data_Mining/Labs/Data_Sets/datasets-UCI/UCI/colic.arff", "r") as f:
+#     data, meta = loadarff(f)
+#
+# X = data[meta.names()[:-1]]
+# X = np.asarray(X.tolist(), dtype=np.str_)
+#
+#
+# # stats = pd.DataFrame(columns=['Fold', 'Classifier_Type', 'ccl_inst_num', 'ccl_inst_per(%)'])
+# stat_index = 0
+# #print(X)
+#
+# Y = data[meta.names()[-1]]
+# #print(Y)
+# dtc = tree.DecisionTreeClassifier()
+# # gnb = GaussianNB()
+# # rfc = RandomForestClassifier()
+# train, test = list(), list()
+#
+# for fold in [6, 9, 14]:
+#     kf = KFold(n_splits=fold)
+#     i = 0
+#     s1, s2 = 0, 0
+#     ln = 0
+#     for train, test in kf.split(X):
+#         i += 1
+#         s1 = supervised_classif(dtc, X[train], Y[train], X[test], Y[test])
+# #         s2 += supervised_classif(rfc, X[train], Y[train], X[test], Y[test])
+#         ln = len(Y[test])
+# #     stats.loc[stat_index] = [fold, 'NB', s1, (s1/(fold*ln))*100]
+# #     stat_index += 1
+# #     stats.loc[stat_index] = [fold, 'RFC', s2, (s2/(fold*ln))*100]
+# #     stat_index += 1
+# # stats
+#
+#
+# # In[14]:
+
+dict_depth={}
+dict_pred={}
+for file in ['colic.arff','diabetes.arff','sick.arff']:
+    filename="/media/vivek/Personal/Vivek/Data_Mining/Labs/Data_Sets/datasets-UCI/UCI/"+file
+    with open(filename, "r") as f:
+        data, meta = loadarff(f)
+        df=pd.DataFrame(data[meta.names()])
+        # for val
+        for label,val in meta._attributes.items():
+            # label=val
+            temp={}
+            i=0
+            if(val[0]=='nominal'):
+                for values in val[1]:
+                    temp[values]=i
+                    i+=1
+                df[label]=df[label].str.decode("utf-8")
+                df[label] = df[label].map(temp)
+
+
+
+        df=df.interpolate(method='linear',axis=0).ffill().bfill()
+        print(np.any(np.isnan(df)))
+        if (np.any(np.isnan(df)) == True):
+            df=df.fillna(0)
+        X = df.iloc[:,:-1]
+        # X = np.asarray(X.tolist(), dtype=np.str_)
+        print(X.shape)
+        print(np.any(np.isnan(X)))
+        # stats = pd.DataFrame(columns=['Per_Split', 'Classifier_Type', 'cl_inst_num','ccl_inst_per(%)'])
+        stat_index = 0
+        #print(X)
+
+        # Y = data[meta.names()[-1]]
+        #print(Y)
+        Y=df.iloc[:,-1]
+        print(Y.shape)
+        print(np.any(np.isnan(Y)))
+        dtc = tree.DecisionTreeClassifier()
+        # gnb = GaussianNB()
+        # rfc = RandomForestClassifier()
+        train, test = list(), list()
+
+        for tst_sz in [0.3]:
+            print('*'*20,"tst_sz="+str(tst_sz), '*'*20)
+        #     kf = KFold(n_splits=fold)
+            i = 0
+            X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=tst_sz)
+
+            crct_pred,depth = supervised_classif(dtc, X_train, Y_train, X_test, Y_test,file)
+            dict_depth[file]=depth
+            dict_pred[file]=crct_pred
+res_pred  = list(sorted(dict_pred.items(), key=operator.itemgetter(1), reverse=True)[0])
+res_depth = list(sorted(dict_depth.items(), key=operator.itemgetter(1), reverse=True)[:3])
+
+print('{} dataset has highest number of correctly classified instances'.format(res_pred[0]))
+print('{} dataset has the largest decision tree, with {} levels'.format(res_depth[0][0],res_depth[0][1]))
+print('{} dataset has the smallest decision tree, with {} levels'.format(res_depth[2][0],res_depth[2][1]))
+        #     s2 = supervised_classif(rfc, X_train, Y_train, X_test, Y_test)
+
+            # stats.loc[stat_index] = [tst_sz, 'NB', s1, (s1/len(Y_test))*100]
+            # stat_index += 1
+            # stats.loc[stat_index] = [tst_sz, 'RFC', s2, (s2/len(Y_test))*100]
+            # stat_index += 1
+# stats
+
+
+# In[5]:
+#
+#
+# df = pd.DataFrame(np.random.randn(10, 4), columns=list('ABCD'))
+# df
+#
+#
+# # In[6]:
+#
+#
+# df.loc[1][1]
+#
+#
+# # In[7]:
+#
+#
+# k = np.append([[1, 2, 3], [4, 5, 6]], [[7, 8, 9]], axis=0)
