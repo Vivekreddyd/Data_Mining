@@ -1,2 +1,2 @@
 # Data_Mining
-Data Mining Course CSCE5450
+Data Mining Course CSCE5380
