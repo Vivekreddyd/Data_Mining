@@ -5,12 +5,13 @@ Data Mining Course CSCE5380
 These assignments are completed in due with the course CSCE# 5380 ( Data Mining). 
 Assign2_Task1 - 
 
-Run two classification algorithms--Naïve Bayes (NB) and Random Forest (RF)--on the Image Segmentation data.
-Problem 1: Cross-validation
+Classification algorithms--Naïve Bayes (NB) and Random Forest (RF)--on the Image Segmentation data.
 
-Run the Naïve Bayes classifier by 3 different numbers of folds (for example, do 3 different runs by 6, 9, 14 folds in each run respectively).
+Sub task1: Cross-validation
 
-Now, run the Random Forest classifier by selecting the same number of folds selected for the Naïve-Bayes classsifer (for example, if you selected 6, 9, 14 folds for Naïve-Bayes, use the same 3 numbers for Random Forest).
+Naïve Bayes classifier by 3 different numbers of folds (3 different runs by 6, 9, 14 folds in each run respectively).
+
+Random Forest classifier by selecting the same number of folds selected for the Naïve-Bayes classsifer (used 6, 9, 14 folds for Naïve-Bayes, use the same 3 numbers for Random Forest).
 
     Do the number of folds have any correlation with the number and percentage of correctly classified instances within the same model (For example, 6 folds and 9 folds in NB and RF respectively)? Explain the results.
 
