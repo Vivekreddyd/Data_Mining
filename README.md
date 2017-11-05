@@ -3,7 +3,7 @@ Data Mining Course CSCE5380
 
 
 These assignments are completed in due with the course CSCE# 5380 ( Data Mining). 
-Assign2_Task2 - 
+Assign2_Task1 - 
 
 Run two classification algorithms--Naïve Bayes (NB) and Random Forest (RF)--on the Image Segmentation data.
 Problem 1: Cross-validation
@@ -30,7 +30,7 @@ Run the RF classifier by selecting the same set of training set ratios selected 
 
     Select any one set of results generated for each classifier. For example, if you performed a test by selecting 42% training data, select the results you obtained for 42% for both – NB and RF. Considering all classes in the dataset, calculate the accuracy and error rate for the results of NB and RF. Show the formula and explain the steps in calculating the accuracy and error-rate.
 
-Task 2
+Assign2_Task2 -
 
 Run two classification algorithms--Naïve Bayes (NB) and Random Forest (RF)--on the Thyroid disease records.
 Problem 3: Cross-validation
@@ -43,7 +43,9 @@ Problem 4: Percentage Split
 Run each of the NB and RF classifier once by selecting a certain percentage of training data (e.g. 42%).
 
 For the results obtained, generate a ROC curve for the class “secondary-hipothyroid” for both the classifiers.
-Task 3
+
+
+Assign2_Task3 -
 
 Run the Decision Tree classifier on Horse Colic database, Pima Indians Diabetes Database, and Thyroid disease records with a 70% and 30% split of training and test data respectively.
 Problem 5:
